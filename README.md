@@ -7,9 +7,13 @@
 selenium, bs4, opencc
 
 使用说明，案例如下
+
 novel = LightNovel('https://www.lightnovel.cn/forum.php?mod=viewthread&tid=930679', 'username', 'password')
+
 title, content, images = novel.get_content()
+
 make_html(title, content)
+
 make_epub(title, content, images)
 
 需替换url， username， password即可
