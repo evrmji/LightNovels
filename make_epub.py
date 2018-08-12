@@ -20,11 +20,9 @@ from opencc import OpenCC
 import mkepub
 
 
-
 class LightNovel:
 
-
-    def __init__(self, url, username, password):
+    def __init__(self, url, username='', password=''):
 
         self.url = url
         self.driver = webdriver.Firefox(firefox_profile=self.firefox_direct())
@@ -38,9 +36,10 @@ class LightNovel:
 
                 self.wait_xpath('//div[@id="main_message"]//table', 200)
 
-
-                self.driver.find_element_by_xpath('//div[@id="main_message"]//input[@name="username"]').send_keys(username)
-                self.driver.find_element_by_xpath('//div[@id="main_message"]//input[@name="password"]').send_keys(password)
+                self.driver.find_element_by_xpath('//div[@id="main_message"]//input[@name="username"]').send_keys(
+                    username)
+                self.driver.find_element_by_xpath('//div[@id="main_message"]//input[@name="password"]').send_keys(
+                    password)
 
                 self.wait_xpath('//input[@id="seccodeverify_cSA"]')
                 self.driver.find_element_by_xpath('//input[@id="seccodeverify_cSA"]').click()
@@ -60,7 +59,7 @@ class LightNovel:
                 break
 
             except:
-                try_time+=1
+                try_time += 1
                 pass
 
     def drive_get(self, url):
@@ -79,7 +78,6 @@ class LightNovel:
             except:
                 try_time += 1
                 pass
-
 
     # Difine network proxy
     def firefox_direct(self):
@@ -102,7 +100,7 @@ class LightNovel:
     def nextpage(self, link_text):
         try:
             next_page = self.driver.find_element_by_link_text(link_text)
-        except :
+        except:
             print("It's the end of pages.")
             next_page = False
         return next_page
@@ -119,7 +117,6 @@ class LightNovel:
         print("Title is {}".format(title))
         check_make_dir(title)
         return title
-
 
     # Get Content including images
     def get_content(self):
@@ -168,6 +165,7 @@ class LightNovel:
         self.driver.quit()
         print('Driver quit.')
 
+
 #               Content Tools
 
 # Convert Traditional Chinese to Simplified
@@ -176,21 +174,25 @@ def convert_chinese(content):
     content = openCC.convert(content)
     return content
 
+
 # Name Number
 def name_number(array, number):
     return (len(str(len(array) - 1)) - len(str(number))) * '0' + str(number)
     # must use return, otherwise it will be None
+
 
 # Check and Make directory
 def check_make_dir(dir):
     if not os.path.isdir(dir):
         os.makedirs(dir)
 
+
 # Replace <img>
 def replace_img(src, replacement, content):
     for origin_text, replace_text in [('.', '\.'), ('?', '\?'), ('&', '\&')]:
         src = src.replace(origin_text, replace_text)
     return re.sub('<img.*?{}.*?>'.format(src), replacement, content)
+
 
 # Get Images
 def get_images(title, content, image_srcs):
@@ -229,7 +231,8 @@ def get_images(title, content, image_srcs):
                 content = replace_img(src, '', content)
                 continue
 
-    return  content, images
+    return content, images
+
 
 #               Make Html
 
@@ -237,7 +240,7 @@ def get_images(title, content, image_srcs):
 def make_html(title, content):
     # Write Html File in Title Folder with the same folder structure as epub
     try:
-        with open('downloads/'+title + '/' + title + '.html', 'w') as file:
+        with open('downloads/' + title + '/' + title + '.html', 'w') as file:
             file.write('''<html lang="cn">
             <head>
                 <meta charset="utf-8">
@@ -253,11 +256,8 @@ def make_html(title, content):
         print(e)
         pass
 
-#               Make Epub
 
-# Split Chatpers with chapter titles
-def finditer_titles(content):
-    re.finditer('(?<=>).{0,5}?(章|尾声|后记|目录).*?(?=<)', content, re.MULTILINE)
+#               Make Epub
 
 # Modify Content
 def modify_content(content):
@@ -267,39 +267,93 @@ def modify_content(content):
     content = re.sub('&nbsp;', ' ', content)
     return content
 
-# Splite Chapters
-def split_chapters(title, content):
 
+# Splite Chapters
+def split_chapters(pattern, content):
     chapters = []
-    chatper_title = title
+    chapter_title = ''
     begining = 0
 
-
-    finditer_results = finditer_titles(content)
-
+    finditer_result = re.finditer(pattern, content)
+    print('finditer_result')
     try:
-        for match_result in finditer_results:
+        for match_result in finditer_result:
+            # first match is in begining
             if match_result.start() == begining:
-                chatper_title = match_result.group()
+                chapter_title = match_result.group()
+                continue
             else:
+                # get the split content end position from this match's begining
                 end = match_result.start() - 1
-                if (end - begining) > 100:
-                    print(chatper_title, begining)
-                    if chatper_title == title:
-                         chapter_content = modify_content(content[:end])
-                    else:
-                        chapter_content = '<h2>{}</h2>'.format(chatper_title) + modify_content(content[begining:end])
-                    chapters.append((chatper_title, chapter_content))
-                    chatper_title = match_result.group().strip(' ')
-                    begining = match_result.end()
+                # add title to content in addChapter
+                chapter_content = modify_content(content[begining:end])
+                # get second title and content
+                print(chapter_title, begining)
+                chapters.append(chapter_title, chapter_content)
+                # give next loop's second title and begining from this match
+                chapter_title = match_result.group().strip(' ')
+                begining = match_result.end()
+        # after loops, begining is last match'es end
+        chapters.append(chapter_title, modify_content(content[begining:]))
 
-        if (len(content) - begining) > 100:
-            chapters.append((chatper_title, modify_content(content[begining:])))
+        # after get chapters list, arrangement is needed
+        new_chapters = []
+        title_list = []
+        content_plus = ''
+        for chapter_title, chapter_content in chapters:
+            if len(chapter_content) < 100:
+                title_list.append(title)
+                content_plus += chapter_content
+            else:
+                if len(title_list) > 0:
+                    new_chapters.append(title_list[0], content_plus)
+                    title_list = []
+                    content_plus = ''
+                new_chapters.append(chapter_title, chapter_content)
+
+        return new_chapters
+
     except:
-        chapters.append((title, modify_content(content)))
+        return None
 
 
+# Double Split Chapters
+def double_split(title, content):
+    chapters = []
+    first_chapters = split_chapters('(?<=>).{0,5}?(章|尾声|后记|目录).*?(?=<)', content)
+    if first_chapters:
+        for first_title, first_content in first_chapters:
+            second_chapters = split_chapters('(?<=>)\d{1,3}(?=<)', first_content)
+            if second_chapters:
+                chapters.append(first_title, second_chapters)
+            else:
+                chapters.append(first_title, first_content)
+    else:
+        chapters.append((title, content))
     return chapters
+
+
+# Add Chapters
+def addChapter(book, book_title, chapters):
+    for title, content in chapters:
+        if title == '':
+            title = book_title
+        # content is a string
+        if isinstance(content, str):
+            book.add_page(title=title, content='<h1>{}</h1>'.format(title) + content)
+        # content is a list of titles and contents
+        if isinstance(content, list):
+            if content[0][0] != '':
+                # if first secondary title is not blank
+                first = book.add_page(title=title, content='<h1>{}</h1>'.format(title))
+                for title2, content2 in content:
+                    book.add_page(title=title2, content='<h2>{}</h2>'.format(title2) + content2, parent=first)
+            else:
+                # else first secondary title is blank
+                first = book.add_page(title=title, content='<h1>{}</h1>'.format(title) + content[0][1])
+                for title2, content2 in content[1:]:
+                    book.add_page(title=title2, content='<h2>{}</h2>'.format(title2) + content2, parent=first)
+
 
 # Set Cover
 def setCover(book, image):
@@ -309,6 +363,8 @@ def setCover(book, image):
     except Exception as e:
         print('Cover failed: {}'.format(e))
         pass
+
+
 # Get Images
 def setImages(book, images):
     for image_path in images:
@@ -316,7 +372,7 @@ def setImages(book, images):
             with open(image_path, 'rb') as image:
                 book.add_image(image_path.split('/')[-1], image.read())
         except Exception as e:
-            print('{} failed: \n{}'.format(image_path,e))
+            print('{} failed: \n{}'.format(image_path, e))
             continue
 
 
@@ -327,27 +383,30 @@ def make_epub(title, content, images=[]):
     book = mkepub.Book(title=title)
     if os.path.isfile(title + '.epub'):
         os.remove(title + '.epub')
-
-    chapters = split_chapters(title, content)
-
+    # Split Chapters
+    chapters = double_split(title, content)
     # Add Chapters
-    for n, chapter in enumerate(chapters):
-        book.add_page(title=chapter[0], content=chapter[1])
-
+    addChapter(book, chapters)
+    # Add Images
     if images != []:
-        setCover(book, title, images[0])
-        setImages(book, images)
+        try:
+            setCover(book, title, images[0])
+            setImages(book, images)
+        except Exception as e:
+            print(e)
+            pass
 
     # Save Book
-    book.save('downloads/'+title + '.epub')
-    print(title+'.epub file complete.' )
+    book.save('downloads/' + title + '.epub')
+    print(title + '.epub file complete.')
+
 
 # Get epub of multi urls
-def collect_epubs(url_list):
+def collect_epubs(url_list, username='mk2016a', password='123456Qz'):
     # Get list
-    list=[]
+    list = []
     url = url_list[0]
-    novel = LightNovel(url)
+    novel = LightNovel(url, username='mk2016a', password='123456Qz')
     title, content, images = novel.get_content()
     list.append((title, content, images))
     # open urls in the same driver
@@ -363,12 +422,16 @@ def collect_epubs(url_list):
     book = mkepub.Book(book_name)
     if os.path.isfile(book_name):
         os.remove(book_name)
-
+    # get chapters
+    chapters = []
     for title, content, images in list:
-        first = book.add_page(title, title)
-        chapters = split_chapters(title, content)
-        for n, chapter in enumerate(chapters):
-            book.add_page(title=chapter[0], content=chapter[1], parent=first)
+        chapters = split_chapters('(?<=>).{0,5}?(章|尾声|后记|目录).*?(?=<)', content)
+        if chapters:
+            first = book.add_page(title, '<h1>{}</h1>'.format(title))
+            for title2, content2 in chapters:
+                book.add_page(title=title2, content='<h2>{}</h2>'.format(title2) + content2, parent=first)
+        else:
+            first = book.add_page(title, '<h1>{}</h1>'.format(title) + content)
         setImages(book, images)
     print(list[0][2][0])
     setCover(book, list[0][2][0])
@@ -376,6 +439,14 @@ def collect_epubs(url_list):
     print('{} file complete.'.format(book_name))
 
 
+# url_list = ['https://www.lightnovel.cn/forum.php?mod=viewthread&tid=915987&highlight=为美好',
+#            'https://www.lightnovel.cn/forum.php?mod=viewthread&tid=928655&highlight=为美好',
+#            'https://www.lightnovel.cn/forum.php?mod=viewthread&tid=930675&highlight=为美好',
+#            'https://www.lightnovel.cn/forum.php?mod=viewthread&tid=935285&highlight=为美好']
+# collect_epubs(url_list)
 
-
+novel = LightNovel('https://www.lightnovel.cn/forum.php?mod=viewthread&tid=930679&highlight=为美好')
+title, content, images = novel.get_content()
+make_html(title, content)
+novel.driver_quit()
 
