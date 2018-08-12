@@ -211,7 +211,7 @@ def get_images(title, content, image_srcs):
                 print(image_name + ": " + src)
 
                 # Add and Retrieve Image
-                #urlretrieve(src, image_path)
+                urlretrieve(src, image_path)
                 images.append(image_path)
                 print('Downloaded.')
 
