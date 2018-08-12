@@ -30,8 +30,8 @@ class LightNovel:
         try_time = 0
         while try_time < 3:
             try:
-                self.driver.set_window_position(1920, -100)
-                self.driver.set_window_size(900, 1600)
+                self.driver.set_window_position(-1920, 0)
+                self.driver.set_window_size(1920, 1080)
                 self.driver.get(self.url)
 
                 self.wait_xpath('//div[@id="main_message"]//table', 200)
@@ -212,7 +212,7 @@ def get_images(title, content, image_srcs):
                 print(image_name + ": " + src)
 
                 # Add and Retrieve Image
-                urlretrieve(src, image_path)
+                #                urlretrieve(src, image_path)
                 images.append(image_path)
                 print('Downloaded.')
 

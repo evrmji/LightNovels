@@ -28,4 +28,5 @@ url_list = ['https://www.lightnovel.cn/forum.php?mod=viewthread&tid=915987&highl
 collect_epubs(url_list, username, password)
 
 联系方式：
+Gitter: https://gitter.im/Light-novels/
 Email: mk2016a@outlook.com
