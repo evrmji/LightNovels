@@ -6,7 +6,10 @@
 需要安装的Modules
 selenium, bs4, opencc
 
-使用说明，案例如下
+使用说明，案例如下：
+在文件中加入如下命令，替换url， username， password运行即可
+
+1. 单一url制作单一文件
 
 novel = LightNovel('https://www.lightnovel.cn/forum.php?mod=viewthread&tid=930679', 'username', 'password')
 
@@ -16,7 +19,13 @@ make_html(title, content)
 
 make_epub(title, content, images)
 
-需替换url， username， password即可
+2. 多个url制作单一文件
 
+url_list = ['https://www.lightnovel.cn/forum.php?mod=viewthread&tid=915987&highlight=为美好',
+            'https://www.lightnovel.cn/forum.php?mod=viewthread&tid=928655&highlight=为美好',
+            'https://www.lightnovel.cn/forum.php?mod=viewthread&tid=930675&highlight=为美好',
+            'https://www.lightnovel.cn/forum.php?mod=viewthread&tid=935285&highlight=为美好']
+collect_epubs(url_list, username, password)
 
+联系方式：
 Email: mk2016a@outlook.com

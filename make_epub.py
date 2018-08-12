@@ -10,14 +10,14 @@ from bs4 import BeautifulSoup
 import re
 import os
 import time
+
 from urllib.parse import urljoin
 from urllib.request import HTTPError
+from urllib.request import URLError
 from urllib.request import urlretrieve
+
 from opencc import OpenCC
-
 import mkepub
-
-
 
 
 
@@ -26,30 +26,60 @@ class LightNovel:
 
     def __init__(self, url, username, password):
 
+        self.url = url
         self.driver = webdriver.Firefox(firefox_profile=self.firefox_direct())
 
-        self.driver.set_window_position(1920, -100)
-        self.driver.set_window_size(900, 1600)
-        self.driver.get(self.url)
+        try_time = 0
+        while try_time < 3:
+            try:
+                self.driver.set_window_position(1920, -100)
+                self.driver.set_window_size(900, 1600)
+                self.driver.get(self.url)
 
-        self.wait_xpath('//div[@id="main_message"]//table', 200)
+                self.wait_xpath('//div[@id="main_message"]//table', 200)
 
 
-        self.driver.find_element_by_xpath('//div[@id="main_message"]//input[@name="username"]').send_keys(username)
-        self.driver.find_element_by_xpath('//div[@id="main_message"]//input[@name="password"]').send_keys(password)
+                self.driver.find_element_by_xpath('//div[@id="main_message"]//input[@name="username"]').send_keys(username)
+                self.driver.find_element_by_xpath('//div[@id="main_message"]//input[@name="password"]').send_keys(password)
 
-        self.wait_xpath('//input[@id="seccodeverify_cSA"]')
-        self.driver.find_element_by_xpath('//input[@id="seccodeverify_cSA"]').click()
+                self.wait_xpath('//input[@id="seccodeverify_cSA"]')
+                self.driver.find_element_by_xpath('//input[@id="seccodeverify_cSA"]').click()
 
-        # Wait for Verification
-        self.wait_xpath('//img[@src="static/image/common/check_right.gif"]')
-        self.driver.find_element_by_xpath('//button[@name="loginsubmit"]').click()
+                # Wait for Verification
+                self.wait_xpath('//img[@src="static/image/common/check_right.gif"]')
+                self.driver.find_element_by_xpath('//button[@name="loginsubmit"]').click()
 
-        # Wait for click
-        self.wait_xpath('//div[@id="postlist"]')
-        self.driver.find_element_by_link_text('只看该作者').click()
-        self.wait_xpath('//a[text()="显示全部楼层"]')
-        self.wait_loading()
+                # Wait for click
+                self.wait_xpath('//div[@id="postlist"]')
+                try:
+                    self.driver.find_element_by_link_text('只看该作者').click()
+                    self.wait_xpath('//a[text()="显示全部楼层"]')
+                except:
+                    pass
+                self.wait_loading()
+                break
+
+            except:
+                try_time+=1
+                pass
+
+    def drive_get(self, url):
+        try_time = 0
+        while try_time < 3:
+            try:
+                self.driver.get(url)
+                try:
+                    self.driver.find_element_by_link_text('只看该作者').click()
+                    self.wait_xpath('//a[text()="显示全部楼层"]')
+                except:
+                    pass
+                self.wait_loading()
+                break
+
+            except:
+                try_time += 1
+                pass
+
 
     # Difine network proxy
     def firefox_direct(self):
@@ -81,7 +111,7 @@ class LightNovel:
     def get_title(self):
         try:
             title = self.driver.find_element_by_xpath('//span[@id="thread_subject"]').text
-            title = opencc(title)
+            title = convert_chinese(title)
             title = title.replace('/', '\\')
         except Exception as e:
             print(e)
@@ -126,21 +156,22 @@ class LightNovel:
             else:
                 break
 
-        content = opencc(content)
+        content = convert_chinese(content)
 
         content, images = get_images(title, content, image_srcs)
 
+        print('{} content geted.'.format(title))
         return title, content, images
 
     # Quit Driver
-    def driverquit(self):
+    def driver_quit(self):
         self.driver.quit()
         print('Driver quit.')
 
 #               Content Tools
 
 # Convert Traditional Chinese to Simplified
-def opencc(content):
+def convert_chinese(content):
     openCC = OpenCC('t2s')
     content = openCC.convert(content)
     return content
@@ -172,22 +203,25 @@ def get_images(title, content, image_srcs):
         for n, src in enumerate(image_srcs):
             try:
                 # Make Image Name and  Image Path
-                image_name = 'pic' + name_number(image_srcs, n) + '.' + \
+                image_name = title + name_number(image_srcs, n) + '.' + \
                              src.split('.')[-1]
-                image_path = 'images/' + image_name
+                image_path = title + '/images/' + image_name
                 print(image_name + ": " + src)
 
                 # Add and Retrieve Image
-                urlretrieve(src, title + '/' + image_path)
+                urlretrieve(src, image_path)
                 images.append(image_path)
+                print('Downloaded.')
 
                 # Replace <img> in Content
-                content = replace_img(src, '<img src="{}">'.format(image_path), content)
+                content = replace_img(src, '<img src="{}">'.format('images/' + image_name), content)
 
-            except HTTPError:
+            except (HTTPError, URLError) as e:
+                # when recieve these errors, just download all images from info of firefox
+                print(e)
                 image_name = src.split('/')[-1]
-                image_path = 'images/' + image_name
-                content = replace_img(src, '<img src="{}">'.format(image_path), content)
+                image_path = title + '/images/' + image_name
+                content = replace_img(src, '<img src="{}">'.format('images/' + image_name), content)
                 images.append(image_path)
 
             except Exception as e:
@@ -267,8 +301,28 @@ def split_chapters(title, content):
 
     return chapters
 
+# Set Cover
+def setCover(book, image):
+    try:
+        with open(image, 'rb') as img:
+            book.set_cover(img.read())
+    except Exception as e:
+        print('Cover failed: {}'.format(e))
+        pass
+# Get Images
+def setImages(book, images):
+    for image_path in images:
+        try:
+            with open(image_path, 'rb') as image:
+                book.add_image(image_path.split('/')[-1], image.read())
+        except Exception as e:
+            print('{} failed: \n{}'.format(image_path,e))
+            continue
+
+
 # Make Epub
 def make_epub(title, content, images=[]):
+    print('Making Epub...')
     # Make Epub File
     book = mkepub.Book(title=title)
     if os.path.isfile(title + '.epub'):
@@ -281,22 +335,47 @@ def make_epub(title, content, images=[]):
         book.add_page(title=chapter[0], content=chapter[1])
 
     if images != []:
-        try:
-            # Set Cover
-            with open(title+'/'+images[0], 'rb') as image:
-                book.set_cover(image.read())
-        except:
-            pass
-
-        # Add Images
-        for image_path in images:
-            try:
-                with open(title+'/'+image_path, 'rb') as image:
-                    book.add_image(image_path.split('/')[-1], image.read())
-            except Exception as e:
-                print(e)
-                continue
+        setCover(book, title, images[0])
+        setImages(book, images)
 
     # Save Book
     book.save('downloads/'+title + '.epub')
-    print(title+'.epub file is done.' )
+    print(title+'.epub file complete.' )
+
+# Get epub of multi urls
+def collect_epubs(url_list):
+    # Get list
+    list=[]
+    url = url_list[0]
+    novel = LightNovel(url)
+    title, content, images = novel.get_content()
+    list.append((title, content, images))
+    # open urls in the same driver
+    for url in url_list[1:]:
+        novel.drive_get(url)
+        title, content, images = novel.get_content()
+        list.append((title, content, images))
+    novel.driver_quit()
+
+    # Make Epub
+    print('Making epub...')
+    book_name = '{} All.epub'.format(list[0][0])
+    book = mkepub.Book(book_name)
+    if os.path.isfile(book_name):
+        os.remove(book_name)
+
+    for title, content, images in list:
+        first = book.add_page(title, title)
+        chapters = split_chapters(title, content)
+        for n, chapter in enumerate(chapters):
+            book.add_page(title=chapter[0], content=chapter[1], parent=first)
+        setImages(book, images)
+    print(list[0][2][0])
+    setCover(book, list[0][2][0])
+    book.save(book_name)
+    print('{} file complete.'.format(book_name))
+
+
+
+
+
