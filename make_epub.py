@@ -212,7 +212,7 @@ def get_images(title, content, image_srcs):
                 print(image_name + ": " + src)
 
                 # Add and Retrieve Image
-                # urlretrieve(src, image_path)
+                urlretrieve(src, image_path)
                 images.append(image_path)
                 print('Downloaded.')
 
@@ -323,7 +323,7 @@ def split_chapters(pattern, content, length=100):
 # Double Split Chapters
 def double_split(title, content):
     chapters = []
-    first_chapters = split_chapters('.{0,5}?(章|尾声|后记|目录).*?(?=<)', content, 300)
+    first_chapters = split_chapters('[^>]{0,5}?(章|尾声|后记|目录).*?(?=<)', content)
     if first_chapters:
         for first_title, first_content in first_chapters:
             second_chapters = split_chapters('\d{1,3}(?=<)', first_content)
