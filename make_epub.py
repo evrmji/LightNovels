@@ -277,7 +277,7 @@ def split_chapters(pattern, content):
     begining = 0
 
     finditer_result = re.finditer(pattern, content)
-    print(finditer_result)
+    # print(finditer_result)       <callable_iterator object at 0x10c6373c8>
     try:
         for match_result in finditer_result:
             # first match is in begining
@@ -291,12 +291,12 @@ def split_chapters(pattern, content):
                 chapter_content = modify_content(content[begining:end])
                 # get second title and content
                 print(chapter_title, begining)
-                chapters.append(chapter_title, chapter_content)
+                chapters.append((chapter_title, chapter_content))
                 # give next loop's second title and begining from this match
                 chapter_title = match_result.group().strip(' ')
                 begining = match_result.end()
         # after loops, begining is last match'es end
-        chapters.append(chapter_title, modify_content(content[begining:]))
+        chapters.append((chapter_title, modify_content(content[begining:])))
 
         # after get chapters list, arrangement is needed
         new_chapters = []
@@ -308,14 +308,15 @@ def split_chapters(pattern, content):
                 content_plus += chapter_content
             else:
                 if len(title_list) > 0:
-                    new_chapters.append(title_list[0], content_plus)
+                    new_chapters.append((title_list[0], content_plus))
                     title_list = []
                     content_plus = ''
-                new_chapters.append(chapter_title, chapter_content)
+                new_chapters.append((chapter_title, chapter_content))
 
         return new_chapters
 
-    except:
+    except Exception as e:
+        print(e)
         return None
 
 
@@ -327,11 +328,11 @@ def double_split(title, content):
         for first_title, first_content in first_chapters:
             second_chapters = split_chapters('(?<=>)\d{1,3}(?=<)', first_content)
             if second_chapters:
-                chapters.append(first_title, second_chapters)
+                chapters.append((first_title, second_chapters))
             else:
-                chapters.append(first_title, first_content)
+                chapters.append((first_title, modify_content(first_content)))
     else:
-        chapters.append((title, content))
+        chapters.append((title, modify_content(content)))
     return chapters
 
 
@@ -441,7 +442,7 @@ def collect_epubs(url_list, username='mk2016a', password='123456Qz'):
     book.save('downloads/' + book_name)
     print('{} file complete.'.format(book_name))
 
-# Examples
+
 novel = LightNovel('https://www.lightnovel.cn/forum.php?mod=viewthread&tid=930679&highlight=为美好')
 title, content, images = novel.get_content()
 make_html(title, content)
