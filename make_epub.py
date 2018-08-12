@@ -90,9 +90,9 @@ class LightNovel:
         wait.until(expected_conditions.presence_of_element_located((By.XPATH, xpath)))
 
     # Wait for Loading
-    def wait_loading(self):
+    def wait_loading(self, max_wait_time=5):
         wait_time = 0
-        while self.driver.execute_script('return document.readyState;') != 'complete' and wait_time < 5:
+        while self.driver.execute_script('return document.readyState;') != 'complete' and wait_time < max_wait_time:
             self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
             wait_time += 0.1
             time.sleep(0.1)
@@ -271,7 +271,7 @@ def modify_content(content):
 
 
 # Splite Chapters
-def split_chapters(pattern, content):
+def split_chapters(pattern, content, length=100):
     chapters = []
     chapter_title = ''
     begining = 0
@@ -286,7 +286,7 @@ def split_chapters(pattern, content):
                 continue
             else:
                 # get the split content end position from this match's begining
-                end = match_result.start() - 1
+                end = match_result.start()
                 # add title to content in addChapter
                 chapter_content = modify_content(content[begining:end])
                 # get second title and content
@@ -303,7 +303,7 @@ def split_chapters(pattern, content):
         title_list = []
         content_plus = ''
         for chapter_title, chapter_content in chapters:
-            if len(chapter_content) < 100:
+            if len(chapter_content) < length:
                 title_list.append(chapter_title)
                 content_plus += chapter_content
             else:
@@ -323,7 +323,7 @@ def split_chapters(pattern, content):
 # Double Split Chapters
 def double_split(title, content):
     chapters = []
-    first_chapters = split_chapters('(?<=>).{0,5}?(章|尾声|后记|目录).*?(?=<)', content)
+    first_chapters = split_chapters('(?<=>).{0,5}?(章|尾声|后记|目录).*?(?=<)', content, 300)
     if first_chapters:
         for first_title, first_content in first_chapters:
             second_chapters = split_chapters('(?<=>)\d{1,3}(?=<)', first_content)
