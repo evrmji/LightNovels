@@ -91,8 +91,10 @@ class LightNovel:
 
     # Wait for Loading
     def wait_loading(self):
-        while self.driver.execute_script('return document.readyState;') != 'complete':
+        wait_time = 0
+        while self.driver.execute_script('return document.readyState;') != 'complete' and wait_time < 5:
             self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            wait_time += 0.1
             time.sleep(0.1)
         print('Load Complete.')
 
@@ -115,7 +117,6 @@ class LightNovel:
             print(e)
             title = 'Unknown'
         print("Title is {}".format(title))
-        check_make_dir(title)
         return title
 
     # Get Content including images
@@ -200,18 +201,18 @@ def get_images(title, content, image_srcs):
     if image_srcs != []:
 
         # Retrieve Images
-        check_make_dir(title + '/images')
+        check_make_dir('downloads/' + title + '/images')
 
         for n, src in enumerate(image_srcs):
             try:
                 # Make Image Name and  Image Path
                 image_name = title + name_number(image_srcs, n) + '.' + \
                              src.split('.')[-1]
-                image_path = title + '/images/' + image_name
+                image_path = 'downloads/' + title + '/images/' + image_name
                 print(image_name + ": " + src)
 
                 # Add and Retrieve Image
-                urlretrieve(src, image_path)
+                # urlretrieve(src, image_path)
                 images.append(image_path)
                 print('Downloaded.')
 
@@ -222,7 +223,7 @@ def get_images(title, content, image_srcs):
                 # when recieve these errors, just download all images from info of firefox
                 print(e)
                 image_name = src.split('/')[-1]
-                image_path = title + '/images/' + image_name
+                image_path = 'downloads/' + title + '/images/' + image_name
                 content = replace_img(src, '<img src="{}">'.format('images/' + image_name), content)
                 images.append(image_path)
 
@@ -240,7 +241,8 @@ def get_images(title, content, image_srcs):
 def make_html(title, content):
     # Write Html File in Title Folder with the same folder structure as epub
     try:
-        with open('downloads/' + title + '/' + title + '.html', 'w') as file:
+        check_make_dir('downloads/' + title)
+        with open('downloads/' + title + '/' + title + '.html', 'w+') as file:
             file.write('''<html lang="cn">
             <head>
                 <meta charset="utf-8">
@@ -275,7 +277,7 @@ def split_chapters(pattern, content):
     begining = 0
 
     finditer_result = re.finditer(pattern, content)
-    print('finditer_result')
+    print(finditer_result)
     try:
         for match_result in finditer_result:
             # first match is in begining
@@ -302,7 +304,7 @@ def split_chapters(pattern, content):
         content_plus = ''
         for chapter_title, chapter_content in chapters:
             if len(chapter_content) < 100:
-                title_list.append(title)
+                title_list.append(chapter_title)
                 content_plus += chapter_content
             else:
                 if len(title_list) > 0:
@@ -378,19 +380,20 @@ def setImages(book, images):
 
 # Make Epub
 def make_epub(title, content, images=[]):
+    check_make_dir('downloads/' + title)
     print('Making Epub...')
     # Make Epub File
+    if os.path.isfile('downloads/' + title + '.epub'):
+        os.remove('downloads/' + title + '.epub')
     book = mkepub.Book(title=title)
-    if os.path.isfile(title + '.epub'):
-        os.remove(title + '.epub')
     # Split Chapters
     chapters = double_split(title, content)
     # Add Chapters
-    addChapter(book, chapters)
+    addChapter(book, title, chapters)
     # Add Images
     if images != []:
         try:
-            setCover(book, title, images[0])
+            setCover(book, images[0])
             setImages(book, images)
         except Exception as e:
             print(e)
@@ -419,9 +422,9 @@ def collect_epubs(url_list, username='mk2016a', password='123456Qz'):
     # Make Epub
     print('Making epub...')
     book_name = '{} All.epub'.format(list[0][0])
+    if os.path.isfile('downloads/' + book_name):
+        os.remove('downloads/' + book_name)
     book = mkepub.Book(book_name)
-    if os.path.isfile(book_name):
-        os.remove(book_name)
     # get chapters
     chapters = []
     for title, content, images in list:
@@ -435,9 +438,19 @@ def collect_epubs(url_list, username='mk2016a', password='123456Qz'):
         setImages(book, images)
     print(list[0][2][0])
     setCover(book, list[0][2][0])
-    book.save(book_name)
+    book.save('downloads/' + book_name)
     print('{} file complete.'.format(book_name))
 
+# Examples
+novel = LightNovel('https://www.lightnovel.cn/forum.php?mod=viewthread&tid=930679&highlight=为美好')
+title, content, images = novel.get_content()
+make_html(title, content)
+make_epub(title, content, images)
+novel.driver_quit()
 
-
+# url_list = ['https://www.lightnovel.cn/forum.php?mod=viewthread&tid=915987&highlight=为美好',
+#            'https://www.lightnovel.cn/forum.php?mod=viewthread&tid=928655&highlight=为美好',
+#            'https://www.lightnovel.cn/forum.php?mod=viewthread&tid=930675&highlight=为美好',
+#            'https://www.lightnovel.cn/forum.php?mod=viewthread&tid=935285&highlight=为美好']
+# collect_epubs(url_list)
 
