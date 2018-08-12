@@ -85,8 +85,8 @@ class LightNovel:
         firefox_profile.set_preference('network.proxy.type', 0)
 
     # Wait for presense of xpath
-    def wait_xpath(self, xpath, time=100):
-        wait = WebDriverWait(self.driver, 100)
+    def wait_xpath(self, xpath, time=10):
+        wait = WebDriverWait(self.driver, time)
         wait.until(expected_conditions.presence_of_element_located((By.XPATH, xpath)))
 
     # Wait for Loading
@@ -305,7 +305,7 @@ def split_chapters(pattern, content, length=100):
         for chapter_title, chapter_content in chapters:
             if len(chapter_content) < length:
                 title_list.append(chapter_title)
-                content_plus += chapter_content
+                content_plus += chapter_title + chapter_content
             else:
                 if len(title_list) > 0:
                     new_chapters.append((title_list[0], content_plus))
@@ -323,10 +323,10 @@ def split_chapters(pattern, content, length=100):
 # Double Split Chapters
 def double_split(title, content):
     chapters = []
-    first_chapters = split_chapters('(?<=>).{0,5}?(章|尾声|后记|目录).*?(?=<)', content, 300)
+    first_chapters = split_chapters('.{0,5}?(章|尾声|后记|目录).*?(?=<)', content, 300)
     if first_chapters:
         for first_title, first_content in first_chapters:
-            second_chapters = split_chapters('(?<=>)\d{1,3}(?=<)', first_content)
+            second_chapters = split_chapters('\d{1,3}(?=<)', first_content)
             if second_chapters:
                 chapters.append((first_title, second_chapters))
             else:
