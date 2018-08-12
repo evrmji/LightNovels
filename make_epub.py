@@ -211,7 +211,7 @@ def get_images(title, content, image_srcs):
                 print(image_name + ": " + src)
 
                 # Add and Retrieve Image
-                urlretrieve(src, image_path)
+                #urlretrieve(src, image_path)
                 images.append(image_path)
                 print('Downloaded.')
 
@@ -439,14 +439,5 @@ def collect_epubs(url_list, username='mk2016a', password='123456Qz'):
     print('{} file complete.'.format(book_name))
 
 
-# url_list = ['https://www.lightnovel.cn/forum.php?mod=viewthread&tid=915987&highlight=为美好',
-#            'https://www.lightnovel.cn/forum.php?mod=viewthread&tid=928655&highlight=为美好',
-#            'https://www.lightnovel.cn/forum.php?mod=viewthread&tid=930675&highlight=为美好',
-#            'https://www.lightnovel.cn/forum.php?mod=viewthread&tid=935285&highlight=为美好']
-# collect_epubs(url_list)
 
-novel = LightNovel('https://www.lightnovel.cn/forum.php?mod=viewthread&tid=930679&highlight=为美好')
-title, content, images = novel.get_content()
-make_html(title, content)
-novel.driver_quit()
 

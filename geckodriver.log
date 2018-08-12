@@ -1,0 +1,24 @@
+1534087488687	geckodriver	INFO	geckodriver 0.21.0
+1534087488692	geckodriver	INFO	Listening on 127.0.0.1:60693
+1534087489695	mozrunner::runner	INFO	Running command: "/Applications/Firefox.app/Contents/MacOS/firefox-bin" "-marionette" "-foreground" "-no-remote" "-profile" "/var/folders/zj/rsqsyz5n1fq6r_tdw2_wlp380000gn/T/rust_mozprofile.j2HpL9aCbw4v"
+2018-08-12 23:24:50.942 plugin-container[3240:91693] *** CFMessagePort: bootstrap_register(): failed 1100 (0x44c) 'Permission denied', port = 0x8743, name = 'com.apple.tsm.portname'
+See /usr/include/servers/bootstrap_defs.h for the error codes.
+2018-08-12 23:24:51.136 plugin-container[3241:91722] *** CFMessagePort: bootstrap_register(): failed 1100 (0x44c) 'Permission denied', port = 0x783f, name = 'com.apple.tsm.portname'
+See /usr/include/servers/bootstrap_defs.h for the error codes.
+1534087491401	Marionette	INFO	Listening on port 60701
+1534087491463	Marionette	WARN	TLS certificate errors will be ignored for this session
+2018-08-12 23:24:51.895 plugin-container[3242:91880] *** CFMessagePort: bootstrap_register(): failed 1100 (0x44c) 'Permission denied', port = 0x843b, name = 'com.apple.tsm.portname'
+See /usr/include/servers/bootstrap_defs.h for the error codes.
+[GFX1-]: Receive IPC close with reason=AbnormalShutdown
+1534087536262	geckodriver	INFO	geckodriver 0.21.0
+1534087536267	geckodriver	INFO	Listening on 127.0.0.1:60823
+1534087537273	mozrunner::runner	INFO	Running command: "/Applications/Firefox.app/Contents/MacOS/firefox-bin" "-marionette" "-foreground" "-no-remote" "-profile" "/var/folders/zj/rsqsyz5n1fq6r_tdw2_wlp380000gn/T/rust_mozprofile.aAqbURX04jWn"
+2018-08-12 23:25:38.475 plugin-container[3255:92950] *** CFMessagePort: bootstrap_register(): failed 1100 (0x44c) 'Permission denied', port = 0x7e03, name = 'com.apple.tsm.portname'
+See /usr/include/servers/bootstrap_defs.h for the error codes.
+2018-08-12 23:25:38.652 plugin-container[3256:92976] *** CFMessagePort: bootstrap_register(): failed 1100 (0x44c) 'Permission denied', port = 0x7d3f, name = 'com.apple.tsm.portname'
+See /usr/include/servers/bootstrap_defs.h for the error codes.
+1534087538865	Marionette	INFO	Listening on port 60832
+1534087538936	Marionette	WARN	TLS certificate errors will be ignored for this session
+2018-08-12 23:25:39.408 plugin-container[3257:93099] *** CFMessagePort: bootstrap_register(): failed 1100 (0x44c) 'Permission denied', port = 0x7443, name = 'com.apple.tsm.portname'
+See /usr/include/servers/bootstrap_defs.h for the error codes.
+JavaScript error: https://www.lightnovel.cn/forum.php?mod=viewthread&tid=930679&highlight=%E4%B8%BA%E7%BE%8E%E5%A5%BD, line 185: ReferenceError: pgvMain is not defined
