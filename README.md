@@ -1,7 +1,7 @@
 # LightNovel
 
 开发基于MacOS，python3.6
-用于利用轻之国度、百度贴吧等最新资源，制作HTML、epub文件，方便电子书阅读器离线阅读、语音朗读等
+用于利用轻之国度最新资源，制作HTML、epub文件，方便电子书阅读器离线阅读、语音朗读等
 
 需要安装的Modules
 selenium, bs4, opencc
