@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 import re
-from opencc import OpenCC
+from simplify_Chinese import OpenCC
 from urllib.parse import urljoin
 import os
 from urllib.request import urlretrieve

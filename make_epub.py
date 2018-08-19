@@ -16,7 +16,7 @@ from urllib.request import HTTPError
 from urllib.request import URLError
 from urllib.request import urlretrieve
 
-from opencc import OpenCC
+from simplify_Chinese import OpenCC
 import mkepub
 
 
