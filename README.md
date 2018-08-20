@@ -7,7 +7,7 @@
 selenium, bs4, opencc
 
 使用说明，案例如下：
-在文件中加入如下命令，替换url， username， password运行即可
+在make_epub.py 中加入如下命令，替换url， username， password运行即可
 
 1. 单一url制作单一文件
 
@@ -26,6 +26,9 @@ url_list = ['https://www.lightnovel.cn/forum.php?mod=viewthread&tid=915987&highl
             'https://www.lightnovel.cn/forum.php?mod=viewthread&tid=930675&highlight=为美好',
             'https://www.lightnovel.cn/forum.php?mod=viewthread&tid=935285&highlight=为美好']
 collect_epubs(url_list, username, password)
+
+3. 运行该文件即可
+python make_epub.py
 
 联系方式：
 Gitter: https://gitter.im/Light-novels/
